@@ -8,6 +8,8 @@ def process_markdown(text):
     code_block_pattern = re.compile(r'```.*?```', re.DOTALL)
     # 用于匹配最外层中括号内容的正则表达式
     bracket_content_pattern = re.compile(r'\[(?:[^\[\]]+|\[(?:[^\[\]]+|\[.*?\])*\])*\]')
+    # 用于匹配最外层小括号内容的正则表达式
+    parenthesis_content_pattern = re.compile(r'\((?:[^\(\)]+|\((?:[^\(\)]+|\(.*?\))*\))*\)')
 
     # 保存处理后的文本块
     processed_blocks = []
@@ -19,7 +21,7 @@ def process_markdown(text):
         # 获取代码块前的文本
         block_before_code = text[last_end:match.start()]
         # 处理代码块前的文本
-        processed_block = process_non_code_block(block_before_code, bracket_content_pattern)
+        processed_block = process_non_code_block(block_before_code, bracket_content_pattern, parenthesis_content_pattern)
         # 添加处理后的文本到结果列表
         processed_blocks.append(processed_block)
         # 添加代码块到结果列表（代码块不做处理）
@@ -29,28 +31,40 @@ def process_markdown(text):
 
     # 处理最后一个代码块后的文本
     remaining_text = text[last_end:]
-    processed_block = process_non_code_block(remaining_text, bracket_content_pattern)
+    processed_block = process_non_code_block(remaining_text, bracket_content_pattern, parenthesis_content_pattern)
     processed_blocks.append(processed_block)
 
     # 将所有处理后的文本块合并
     return ''.join(processed_blocks)
 
-def process_non_code_block(text, bracket_content_pattern):
+def process_non_code_block(text, bracket_content_pattern, parenthesis_content_pattern):
     # 处理中括号内的内容，暂时替换为占位符
-    placeholders = []
-    def replace_with_placeholder(match):
-        placeholders.append(match.group())
-        return f'PLACEHOLDER_{len(placeholders) - 1}'
+    bracket_placeholders = []
+    def replace_bracket_with_placeholder(match):
+        bracket_placeholders.append(match.group())
+        return f'BRACKET_PLACEHOLDER_{len(bracket_placeholders) - 1}'
 
-    text = bracket_content_pattern.sub(replace_with_placeholder, text)
+    text = bracket_content_pattern.sub(replace_bracket_with_placeholder, text)
+
+    # 处理小括号内的内容，暂时替换为占位符
+    parenthesis_placeholders = []
+    def replace_parenthesis_with_placeholder(match):
+        parenthesis_placeholders.append(match.group())
+        return f'PARENTHESIS_PLACEHOLDER_{len(parenthesis_placeholders) - 1}'
+
+    text = parenthesis_content_pattern.sub(replace_parenthesis_with_placeholder, text)
 
     # 在英文单词/数字与中文之间添加空格
     text = re.sub(r'([a-zA-Z0-9])([\u4e00-\u9fff])', r'\1 \2', text)
     text = re.sub(r'([\u4e00-\u9fff])([a-zA-Z0-9])', r'\1 \2', text)
 
     # 还原中括号内的内容
-    for i, placeholder in enumerate(placeholders):
-        text = text.replace(f'PLACEHOLDER_{i}', placeholder)
+    for i, placeholder in enumerate(bracket_placeholders):
+        text = text.replace(f'BRACKET_PLACEHOLDER_{i}', placeholder)
+
+    # 还原小括号内的内容
+    for i, placeholder in enumerate(parenthesis_placeholders):
+        text = text.replace(f'PARENTHESIS_PLACEHOLDER_{i}', placeholder)
 
     return text
 
