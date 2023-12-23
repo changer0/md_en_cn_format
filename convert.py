@@ -9,17 +9,12 @@ def add_space_between_english_and_chinese(text):
 
     # 忽略代码块和方括号中的内容
     in_code_block = False
-    in_brackets = False
     lines = text.split('\n')
     for i in range(len(lines)):
         line = lines[i]
         if '```' in line:
             in_code_block = not in_code_block
-        if '[' in line:
-            in_brackets = True
-        if ']' in line and in_brackets:
-            in_brackets = False
-        if in_code_block or in_brackets:
+        if in_code_block:
             continue
         lines[i] = pattern.sub(' ', line)
 
