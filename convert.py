@@ -54,9 +54,9 @@ def process_non_code_block(text, bracket_content_pattern, parenthesis_content_pa
 
     text = parenthesis_content_pattern.sub(replace_parenthesis_with_placeholder, text)
 
-    # 在英文单词/数字与中文之间添加空格
-    text = re.sub(r'([a-zA-Z0-9])([\u4e00-\u9fff])', r'\1 \2', text)
-    text = re.sub(r'([\u4e00-\u9fff])([a-zA-Z0-9])', r'\1 \2', text)
+    # 在英文单词与中文之间添加空格
+    text = re.sub(r'([a-zA-Z])([\u4e00-\u9fff])', r'\1 \2', text)
+    text = re.sub(r'([\u4e00-\u9fff])([a-zA-Z])', r'\1 \2', text)
 
     # 还原中括号内的内容
     for i, placeholder in enumerate(bracket_placeholders):
